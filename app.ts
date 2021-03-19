@@ -1,8 +1,8 @@
-const { App } = require("@slack/bolt");
+import { App } from "@slack/bolt";
 
 require("dotenv").config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 const app = new App({
   token: process.env.ACCESS_TOKEN,
