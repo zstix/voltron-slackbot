@@ -1,0 +1,13 @@
+{
+  "name": "voltron-slackbot",
+  "version": "0.0.1",
+  "main": "app.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "@slack/bolt": "^3.3.0",
+    "dotenv": "^8.2.0"
+  }
+}
