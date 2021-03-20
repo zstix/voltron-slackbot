@@ -1,4 +1,5 @@
 import { App } from "@slack/bolt";
+import fetch from "node-fetch";
 
 require("dotenv").config();
 
@@ -56,8 +57,6 @@ app.command("/helloworld", async ({ ack, payload, context }) => {
   // acknowledge the command request
   ack();
 
-  console.dir(payload, { depth: 4 });
-
   try {
     await app.client.chat.postMessage({
       token: process.env.ACCESS_TOKEN,
@@ -69,6 +68,44 @@ app.command("/helloworld", async ({ ack, payload, context }) => {
         },
       ],
       text: "Message from Test App",
+    });
+  } catch (error) {
+    console.log("[ERROR] Error responding to /helloworld");
+    console.dir(error, { depth: 3 });
+    console.error(error);
+  }
+});
+
+app.command("/voltron", async ({ ack, payload, context }) => {
+  ack();
+
+  try {
+    const { text } = payload;
+    const command = text.split(" ")[0];
+
+    if (command !== "cat") {
+      console.log("[Voltron] I only respond with CATS");
+      return;
+    }
+    const resp = await fetch("https://api.thecatapi.com/v1/images/search");
+    const data = await resp.json();
+    const image_url = data[0].url;
+
+    await app.client.chat.postMessage({
+      token: process.env.ACCESS_TOKEN,
+      channel: payload.channel_id,
+      blocks: [
+        {
+          type: "section",
+          text: { type: "mrkdwn", text: ":joy_cat: I found this cat for you:" },
+        },
+        {
+          type: "image",
+          image_url,
+          alt_text: "Cat picture",
+        },
+      ],
+      text: "Cat picture",
     });
   } catch (error) {
     console.log("[ERROR] Error responding to /helloworld");
