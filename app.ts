@@ -1,14 +1,15 @@
-import { App } from "@slack/bolt";
 import fetch from "node-fetch";
+import { App } from "@slack/bolt";
+import { createEventAdapter } from "@slack/events-api";
 
 require("dotenv").config();
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
+const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+const token = process.env.ACCESS_TOKEN;
+const signingSecret = process.env.SIGNING_SECRET;
 
-const app = new App({
-  token: process.env.ACCESS_TOKEN,
-  signingSecret: process.env.SIGNING_SECRET,
-});
+const app = new App({ token, signingSecret });
+const slackEvents = createEventAdapter(signingSecret);
 
 app.command("/voltron", async ({ ack, payload }) => {
   ack();
@@ -18,8 +19,9 @@ app.command("/voltron", async ({ ack, payload }) => {
     const command = text.split(" ")[0];
 
     if (command !== "cat") {
-      await app.client.chat.postMessage({
-        token: process.env.ACCESS_TOKEN,
+      await app.client.chat.postEphemeral({
+        token,
+        user: payload.user_id,
         channel: payload.channel_id,
         blocks: [
           {
@@ -41,7 +43,7 @@ app.command("/voltron", async ({ ack, payload }) => {
     const image_url = data[0].url;
 
     await app.client.chat.postMessage({
-      token: process.env.ACCESS_TOKEN,
+      token,
       channel: payload.channel_id,
       blocks: [
         {
@@ -63,8 +65,14 @@ app.command("/voltron", async ({ ack, payload }) => {
   }
 });
 
-(async () => {
-  await app.start(PORT);
+slackEvents.on('message', (event) => {
+  console.log('message event');
+  console.log(event);
+});
 
-  console.log(`[Voltron] App is running on port ${PORT}`);
+(async () => {
+  // await app.start(port);
+  await slackEvents.start(port);
+
+  console.log(`[Voltron] App is running on port ${port}`);
 })();
